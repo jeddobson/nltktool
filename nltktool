@@ -1,0 +1,206 @@
+#!/usr/bin/env python
+#
+# a generic NLTK tool (swiss army knife)
+# used for teaching
+#
+# now requires nltk 3.1+
+#
+
+import argparse
+import sys
+import os
+import re
+import operator
+
+verbose_switch = False
+
+parser = argparse.ArgumentParser(
+		description='nltk tool: a wrapper around NLTK functions. \
+		contact: James.E.Dobson@Dartmouth.EDU')
+
+parser.add_argument('--filename','-f',help='filename to process with nltk')
+parser.add_argument('function')
+parser.add_argument('--verbose','-v',dest='verbose_switch',action='store_true')
+parser.add_argument('--term','-t',dest='search_string')
+
+args = parser.parse_args()
+
+# now import nltk
+import nltk
+
+# check version number
+if nltk.__version__ != "3.1":
+	print "requires nltk 3.1"
+	exit
+
+
+if args.verbose_switch == True:
+	verbose_switch = True
+
+def verbose(msg):
+	if verbose_switch:
+		print msg
+
+#
+# generic text preprocessing
+#
+
+def preprocess(text):
+	verbose('preprocessing')
+	pp_text = [word for word in text if word.isalpha() ]
+	pp_text = [word.lower() for word in pp_text]
+
+	verbose('removing stopwords')
+	from nltk.corpus import stopwords
+        stopwords = stopwords.words('english')
+
+	verbose('removing custom stopwords')
+	custom_stopwords="""like go going gone one would got still really get"""
+
+	stopwords += custom_stopwords.split()
+        pp_text = [word for word in pp_text if word not in stopwords]
+
+	return pp_text
+
+
+from nltk import pos_tag, ne_chunk
+from nltk.tokenize import wordpunct_tokenize
+
+print "opening file: " + str(args.filename)
+fstream = open(args.filename,'rU')
+verbose('running through tokenizer')
+itext = fstream.read()
+tokens = nltk.word_tokenize(itext)
+text = nltk.Text(tokens)
+
+
+#
+# address the several functions
+#
+
+if args.function == "locations":
+	geo_dict= {}
+	out=ne_chunk(pos_tag(wordpunct_tokenize(itext)))
+	for i in out.subtrees():
+		if i.label() == 'GPE': 
+		 	t=re.split('\(GPE ',str(i))
+			x=re.split('\/.*',t[1])
+			place = x[0]	
+			if place in geo_dict:
+				geo_dict[place] = geo_dict[place] + 1
+			else:
+				geo_dict[place] = 1
+
+	top_places = sorted(geo_dict, key=geo_dict.get, reverse=True)
+	total = len(top_places)
+	if total > 25:
+        	for i in range(0,25,1):
+               		print '{0:40}  {1:10d}'.format(top_places[i], geo_dict[top_places[i]])
+	else:
+		for i in range(0,total,1):
+               		print '{0:40}  {1:10d}'.format(top_places[i], geo_dict[top_places[i]])
+
+
+if args.function == "people":
+	out=ne_chunk(pos_tag(wordpunct_tokenize(itext)))
+	for i in out.subtrees():
+		if i.label() == 'PERSON': print (i)
+
+if args.function == "similarity":
+	verbose('searching for similar contexts')
+	if args.search_string == 0:
+		print "error: need term (--term or -t)"
+		exit()
+	text.similar(args.search_string)
+
+
+if args.function == "concordance":
+	 verbose('searching for contexts')
+         if args.search_string == 0:
+		print "error: need term (--term or -t)"
+	        exit()
+	 punct_tokens = nltk.wordpunct_tokenize(itext)
+	 punct_text = nltk.Text(punct_tokens)
+	 punct_text.concordance(args.search_string)
+
+if args.function == 'search':
+	verbose('searching for string')
+	if args.search_string == 0:
+		print "error: need term (--term or -t)"
+		exit()
+
+	text.findall(args.search_string)
+
+if args.function == "topbigrams":
+	pp_text = preprocess(text)
+	bigrams_t = nltk.bigrams(pp_text)
+
+	freq = nltk.FreqDist(bigrams_t)
+	for i in range(0,25,1):
+		print '{0:40}  {1:10d}'.format(freq.keys()[i], freq.values()[i])
+
+if args.function == "collocations":
+	text.collocations(num=25, window_size=3)
+
+if args.function == "stats":
+	lines = sum(1 for line in open(args.filename))
+	pp_text = preprocess(text)
+	vocab = len(set(pp_text))
+	print "total number of lines: " + str(lines)
+	print "total number of words: " + str(len(tokens))
+	print "total number of unique non-stop words: " + str(vocab)
+
+if args.function == "topterms":
+	pp_text = preprocess(text)
+	verbose('calculating distribution table')
+	freq = nltk.FreqDist(pp_text)
+	freq_common = freq.most_common(25)
+	for i in range(0,25,1):
+		print '{0:20}  {1:10d}'.format(freq_common[i][0], freq_common[i][1])
+
+if args.function == "tf-idf":
+	verbose('importing numpy and sklearn')
+	from sklearn.feature_extraction import text
+	from sklearn import decomposition
+	from sklearn import datasets
+
+	fstream = open(args.filename)
+	verbose('reading files and loading into vectorizer')
+	vectorizer = text.CountVectorizer(input=fstream,max_features=100, stop_words='english')
+	vectorizer.decode_error='replace'
+	counts = vectorizer.fit_transform(fstream)
+	tfidf = text.TfidfTransformer().fit_transform(counts)
+
+	verbose('fitting to model')
+	nmf = decomposition.NMF(n_components=20).fit(tfidf)
+
+	verbose('extracting topics')
+	feature_names = vectorizer.get_feature_names()
+	for topic_idx, topic in enumerate(nmf.components_):
+		print("Topic #%d:" % topic_idx)
+		print(" ".join([feature_names[i]
+			for i in topic.argsort()[:-20 - 1:-1]]))
+
+if args.function == "tf-idf-ngram":
+	verbose('importing numpy and sklearn')
+	from sklearn.feature_extraction import text
+	from sklearn import decomposition
+	from sklearn import datasets
+
+	fstream = open(args.filename)
+	verbose('reading files and loading into vectorizer')
+	vectorizer = text.CountVectorizer(input=fstream,ngram_range=(2,4),max_features=100, stop_words='english')
+	vectorizer.decode_error='replace'
+	counts = vectorizer.fit_transform(fstream)
+	tfidf = text.TfidfTransformer().fit_transform(counts)
+
+	verbose('fitting to model')
+	nmf = decomposition.NMF(n_components=20).fit(tfidf)
+
+	verbose('extracting topics')
+	feature_names = vectorizer.get_feature_names()
+	for topic_idx, topic in enumerate(nmf.components_):
+		print("Topic #%d:" % topic_idx)
+		print(",".join([feature_names[i]
+			for i in topic.argsort()[:-20 - 1:-1]]))
+
