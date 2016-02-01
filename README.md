@@ -10,3 +10,4 @@ YikYak social media application.
 Please email Jed Dobson (james.e.dobson@dartmouth.edu) with any problems,
 fixes, or suggestions.
 
+Web: http://www.cultcritlab.org
