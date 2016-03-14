@@ -15,14 +15,17 @@ import operator
 verbose_switch = False
 
 parser = argparse.ArgumentParser(
-		description='nltk tool: a wrapper around NLTK functions. \
-		contact: James.E.Dobson@Dartmouth.EDU')
+	description='nltk tool: a wrapper around NLTK functions. \
+	contact: James.E.Dobson@Dartmouth.EDU')
 
-parser.add_argument('--filename','-f',help='filename to process with nltk')
-parser.add_argument('function')
-parser.add_argument('--verbose','-v',dest='verbose_switch',action='store_true')
+parser.add_argument('--filename','-f',
+	help='filename to process with nltk')
+parser.add_argument('function',
+	help='name of the function to use')
+parser.add_argument('--verbose','-v',dest='verbose_switch',
+	action='store_true',
+	help='verbose flag')
 parser.add_argument('--term','-t',dest='search_string')
-
 args = parser.parse_args()
 
 # now import nltk
@@ -32,7 +35,6 @@ import nltk
 if nltk.__version__ != "3.1":
 	print "requires nltk 3.1"
 	exit
-
 
 if args.verbose_switch == True:
 	verbose_switch = True
