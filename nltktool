@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 #
 # a generic NLTK tool (swiss army knife)
-# used for teaching
+# used for teaching in the humanities
 #
 # now requires nltk 3.1+
 #
+# Author:
+# James E. Dobson 
+# Dartmouth College
+# www.cultcrtic.org
 
 import argparse
 import sys
