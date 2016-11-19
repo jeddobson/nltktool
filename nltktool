@@ -1,14 +1,19 @@
 #!/usr/bin/env python
 #
 # a generic NLTK tool (swiss army knife)
-# used for teaching in the humanities
+# used for teaching
+# $Id: nltktool,v 1.6 2016/01/18 15:26:20 jed Exp jed $
 #
 # now requires nltk 3.1+
 #
-# Author:
-# James E. Dobson 
-# Dartmouth College
-# www.cultcrtic.org
+
+# encoding=utf8  
+import sys  
+
+reload(sys)  
+sys.setdefaultencoding('utf8')
+
+
 
 import argparse
 import sys
@@ -19,26 +24,24 @@ import operator
 verbose_switch = False
 
 parser = argparse.ArgumentParser(
-	description='nltk tool: a wrapper around NLTK functions. \
-	contact: James.E.Dobson@Dartmouth.EDU')
+		description='nltk tool: a wrapper around NLTK functions. \
+		contact: James.E.Dobson@Dartmouth.EDU')
 
-parser.add_argument('--filename','-f',
-	help='filename to process with nltk')
-parser.add_argument('function',
-	help='name of the function to use')
-parser.add_argument('--verbose','-v',dest='verbose_switch',
-	action='store_true',
-	help='verbose flag')
+parser.add_argument('--filename','-f',help='filename to process with nltk')
+parser.add_argument('function')
+parser.add_argument('--verbose','-v',dest='verbose_switch',action='store_true')
 parser.add_argument('--term','-t',dest='search_string')
+
 args = parser.parse_args()
 
 # now import nltk
 import nltk
 
 # check version number
-if nltk.__version__ != "3.1":
+if float(nltk.__version__) > 3.1:
 	print "requires nltk 3.1"
-	exit
+	exit()
+
 
 if args.verbose_switch == True:
 	verbose_switch = True
@@ -75,7 +78,7 @@ from nltk.tokenize import wordpunct_tokenize
 print "opening file: " + str(args.filename)
 fstream = open(args.filename,'rU')
 verbose('running through tokenizer')
-itext = fstream.read()
+itext = fstream.read().decode('utf-8')
 tokens = nltk.word_tokenize(itext)
 text = nltk.Text(tokens)
 
@@ -134,7 +137,6 @@ if args.function == 'search':
 	if args.search_string == 0:
 		print "error: need term (--term or -t)"
 		exit()
-
 	text.findall(args.search_string)
 
 if args.function == "topbigrams":
