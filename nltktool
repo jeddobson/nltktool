@@ -52,7 +52,7 @@ def verbose(msg):
 		print msg
 
 if args.function not in wrapped_functions:
-    print "Error: unknown function" + args.function
+    print "Error: unknown function " + args.function
     exit()
 
 #
