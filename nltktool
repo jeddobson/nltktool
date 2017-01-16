@@ -23,6 +23,7 @@ import re
 import operator
 
 verbose_switch = False
+wrapped_functions = ['tf-idf','tf-idf-ngram','search','concordance','search','topbigrams','people','locations','collocations','topterms','stats']
 
 parser = argparse.ArgumentParser(
 		description='nltk tool: a wrapper around NLTK functions. \
@@ -43,13 +44,16 @@ if LooseVersion(nltk.__version__) < LooseVersion("3.1"):
 	print "requires nltk 3.1 or greater"
 	exit()
 
-
 if args.verbose_switch == True:
 	verbose_switch = True
 
 def verbose(msg):
 	if verbose_switch:
 		print msg
+
+if args.function not in wrapped_functions:
+    print "Error: unknown function" + args.function
+    exit()
 
 #
 # generic text preprocessing
@@ -93,9 +97,7 @@ if args.function == "locations":
 	out=ne_chunk(pos_tag(wordpunct_tokenize(itext)))
 	for i in out.subtrees():
 		if i.label() == 'GPE': 
-		 	t=re.split('\(GPE ',str(i))
-			x=re.split('\/.*',t[1])
-			place = x[0]	
+                        place = i[0][0]
 			if place in geo_dict:
 				geo_dict[place] = geo_dict[place] + 1
 			else:
@@ -112,9 +114,24 @@ if args.function == "locations":
 
 
 if args.function == "people":
+        people_dict = {}
 	out=ne_chunk(pos_tag(wordpunct_tokenize(itext)))
 	for i in out.subtrees():
-		if i.label() == 'PERSON': print (i)
+		if i.label() == 'PERSON':
+                        person = i[0][0]
+                        if person in people_dict:
+				people_dict[person] = people_dict[person] + 1
+			else:
+				people_dict[person] = 1
+
+	top_people = sorted(people_dict, key=people_dict.get, reverse=True)
+	total = len(top_people)
+	if total > 25:
+        	for i in range(0,25,1):
+              		print '{0:40}  {1:10d}'.format(top_people[i], people_dict[top_people[i]])
+	else:
+		for i in range(0,total,1):
+               		print '{0:40}  {1:10d}'.format(top_people[i], people_dict[top_people[i]])
 
 if args.function == "similarity":
 	verbose('searching for similar contexts')
@@ -143,10 +160,11 @@ if args.function == 'search':
 if args.function == "topbigrams":
 	pp_text = preprocess(text)
 	bigrams_t = nltk.bigrams(pp_text)
-
 	freq = nltk.FreqDist(bigrams_t)
+        freq_common = freq.most_common(25)
 	for i in range(0,25,1):
-		print '{0:40}  {1:10d}'.format(freq.keys()[i], freq.values()[i])
+                string = freq_common[i][0][0] + " " + freq_common[i][0][1]
+		print '{0:20}  {1:10d}'.format(string, freq_common[i][1])
 
 if args.function == "collocations":
 	text.collocations(num=25, window_size=3)
