@@ -15,6 +15,8 @@ Viewing some basic information from input file:
     total number of lines: 3698
     total number of words: 56019
     total number of unique non-stop
+    lexical variety: 9.68669239805
+
     words: 5750
 
 #Contact
