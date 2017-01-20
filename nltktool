@@ -23,7 +23,7 @@ import re
 import operator
 
 verbose_switch = False
-wrapped_functions = ['tf-idf','tf-idf-ngram','search','concordance','search','topbigrams','people','locations','collocations','topterms','stats']
+wrapped_functions = ['tf-idf','tf-idf-ngram','search','concordance','search','topbigrams','people','locations','collocations','topterms','stats','similarity']
 
 parser = argparse.ArgumentParser(
 		description='nltk tool: a wrapper around NLTK functions. \
