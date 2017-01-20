@@ -176,6 +176,7 @@ if args.function == "stats":
 	print "total number of lines: " + str(lines)
 	print "total number of words: " + str(len(tokens))
 	print "total number of unique non-stop words: " + str(vocab)
+        print "lexical variety: " + str(float(len(tokens)) / float(vocab))
 
 if args.function == "topterms":
 	pp_text = preprocess(text)
