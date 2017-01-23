@@ -23,6 +23,7 @@ import re
 import operator
 
 verbose_switch = False
+
 wrapped_functions = ['tf-idf','tf-idf-ngram','search','concordance','search','topbigrams','people','locations','collocations','topterms','stats','similarity']
 
 parser = argparse.ArgumentParser(
@@ -51,6 +52,7 @@ def verbose(msg):
 	if verbose_switch:
 		print msg
 
+# maybe not the ideal way to do this...
 if args.function not in wrapped_functions:
     print "Error: unknown function " + args.function
     exit()
@@ -86,7 +88,6 @@ verbose('running through tokenizer')
 itext = fstream.read().decode('utf-8')
 tokens = nltk.word_tokenize(itext)
 text = nltk.Text(tokens)
-
 
 #
 # address the several functions
@@ -133,12 +134,13 @@ if args.function == "people":
 		for i in range(0,total,1):
                		print '{0:40}  {1:10d}'.format(top_people[i], people_dict[top_people[i]])
 
+# similarity function
 if args.function == "similarity":
 	verbose('searching for similar contexts')
 	if args.search_string == 0:
 		print "error: need term (--term or -t)"
 		exit()
-	text.similar(args.search_string)
+	text.similar(args.search_string,num=50)
 
 
 if args.function == "concordance":
@@ -166,9 +168,16 @@ if args.function == "topbigrams":
                 string = freq_common[i][0][0] + " " + freq_common[i][0][1]
 		print '{0:20}  {1:10d}'.format(string, freq_common[i][1])
 
-if args.function == "collocations":
-	text.collocations(num=25, window_size=3)
 
+#
+# now preprocess collocations (convert to lower case, drop stopwords)
+#
+if args.function == "collocations":
+        pp_text = preprocess(text) 
+        text = nltk.Text(pp_text)
+	text.collocations(num=30, window_size=3)
+
+# basic statistics
 if args.function == "stats":
 	lines = sum(1 for line in open(args.filename))
 	pp_text = preprocess(text)
