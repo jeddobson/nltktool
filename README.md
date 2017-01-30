@@ -6,6 +6,15 @@ scikit-learn. It was written for use in the classroom to play with text mining
 and topic modeling tools by examining an input file of "yaks" obtained from the
 YikYak social media application.
 
+# Requirements
+
+The nltktool script requires the following Python libraries: 
+ - numpy
+ - scipy
+ - nltk
+ - sklearn
+
+
 # Examples
 
 Viewing some basic information from input file:
