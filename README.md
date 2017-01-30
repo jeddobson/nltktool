@@ -9,9 +9,10 @@ YikYak social media application.
 # Requirements
 
 The nltktool script requires the following Python libraries: 
+ - Python 2.7+ or 3.x
  - numpy
  - scipy
- - nltk
+ - nltk 3.1+
  - sklearn
 
 
@@ -28,7 +29,13 @@ Viewing some basic information from input file:
 
     words: 5750
 
-#Contact
+# Help
+
+The '--help' option displays some basic usage instructions for the script and a
+list of supported functions
+
+# Contact
+
 Please email Jed Dobson (james.e.dobson@dartmouth.edu) with any problems,
 fixes, or suggestions.
 
