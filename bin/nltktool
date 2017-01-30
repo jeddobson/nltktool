@@ -1,17 +1,23 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 #
-# a generic NLTK tool (swiss army knife)
-# used for teaching
+# a generic NLTK and sklearn tool (swiss army knife)
+# used for teaching the basics of text mining
+#
+# James E. Dobson
+# Dartmouth College
+# James.E.Dobson@Dartmouth.EDU
+#
 # $Id: nltktool,v 1.6 2016/01/18 15:26:20 jed Exp jed $
 #
-# now requires nltk 3.1+
+# requires nltk 3.1+
+# works with Python 2 & 3
 #
 
 # encoding=utf8  
 import sys  
 
-reload(sys)  
-sys.setdefaultencoding('utf8')
+#reload(sys)  
+#sys.setdefaultencoding('utf8')
 
 
 from distutils.version import LooseVersion
@@ -31,7 +37,7 @@ parser = argparse.ArgumentParser(
 		contact: James.E.Dobson@Dartmouth.EDU')
 
 parser.add_argument('--filename','-f',help='filename to process with nltk')
-parser.add_argument('function')
+parser.add_argument('function',help="tf-idf,tf-idf-ngram,search,concordance,search,topbigrams,people,locations,collocations,topterms,stats,similarity")
 parser.add_argument('--verbose','-v',dest='verbose_switch',action='store_true')
 parser.add_argument('--term','-t',dest='search_string')
 
@@ -42,7 +48,7 @@ import nltk
 
 # check version number
 if LooseVersion(nltk.__version__) < LooseVersion("3.1"):
-	print "requires nltk 3.1 or greater"
+	print("requires nltk 3.1 or greater")
 	exit()
 
 if args.verbose_switch == True:
@@ -50,11 +56,11 @@ if args.verbose_switch == True:
 
 def verbose(msg):
 	if verbose_switch:
-		print msg
+		print(msg)
 
 # maybe not the ideal way to do this...
 if args.function not in wrapped_functions:
-    print "Error: unknown function " + args.function
+    print("Error: unknown function " + args.function)
     exit()
 
 #
@@ -68,13 +74,13 @@ def preprocess(text):
 
 	verbose('removing stopwords')
 	from nltk.corpus import stopwords
-        stopwords = stopwords.words('english')
+	stopwords = stopwords.words('english')
 
 	verbose('removing custom stopwords')
 	custom_stopwords="""like go going gone one would got still really get"""
 
 	stopwords += custom_stopwords.split()
-        pp_text = [word for word in pp_text if word not in stopwords]
+	pp_text = [word for word in pp_text if word not in stopwords]
 
 	return pp_text
 
@@ -82,10 +88,11 @@ def preprocess(text):
 from nltk import pos_tag, ne_chunk
 from nltk.tokenize import wordpunct_tokenize
 
-print "opening file: " + str(args.filename)
+print("opening file: " + str(args.filename))
 fstream = open(args.filename,'rU')
 verbose('running through tokenizer')
-itext = fstream.read().decode('utf-8')
+itext = fstream.read()
+#itext = fstream.read().decode('utf-8')
 tokens = nltk.word_tokenize(itext)
 text = nltk.Text(tokens)
 
@@ -98,7 +105,7 @@ if args.function == "locations":
 	out=ne_chunk(pos_tag(wordpunct_tokenize(itext)))
 	for i in out.subtrees():
 		if i.label() == 'GPE': 
-                        place = i[0][0]
+			place = i[0][0]
 			if place in geo_dict:
 				geo_dict[place] = geo_dict[place] + 1
 			else:
@@ -108,19 +115,19 @@ if args.function == "locations":
 	total = len(top_places)
 	if total > 25:
         	for i in range(0,25,1):
-               		print '{0:40}  {1:10d}'.format(top_places[i], geo_dict[top_places[i]])
+               		print('{0:40}  {1:10d}'.format(top_places[i], geo_dict[top_places[i]]))
 	else:
 		for i in range(0,total,1):
-               		print '{0:40}  {1:10d}'.format(top_places[i], geo_dict[top_places[i]])
+               		print('{0:40}  {1:10d}'.format(top_places[i], geo_dict[top_places[i]]))
 
 
 if args.function == "people":
-        people_dict = {}
+	people_dict = {}
 	out=ne_chunk(pos_tag(wordpunct_tokenize(itext)))
 	for i in out.subtrees():
 		if i.label() == 'PERSON':
-                        person = i[0][0]
-                        if person in people_dict:
+			person = i[0][0]
+			if person in people_dict:
 				people_dict[person] = people_dict[person] + 1
 			else:
 				people_dict[person] = 1
@@ -128,34 +135,34 @@ if args.function == "people":
 	top_people = sorted(people_dict, key=people_dict.get, reverse=True)
 	total = len(top_people)
 	if total > 25:
-        	for i in range(0,25,1):
-              		print '{0:40}  {1:10d}'.format(top_people[i], people_dict[top_people[i]])
+		for i in range(0,25,1):
+			print('{0:40}  {1:10d}'.format(top_people[i], people_dict[top_people[i]]))
 	else:
 		for i in range(0,total,1):
-               		print '{0:40}  {1:10d}'.format(top_people[i], people_dict[top_people[i]])
+			print('{0:40}  {1:10d}'.format(top_people[i], people_dict[top_people[i]]))
 
 # similarity function
 if args.function == "similarity":
 	verbose('searching for similar contexts')
 	if args.search_string == 0:
-		print "error: need term (--term or -t)"
+		print("error: need term (--term or -t)")
 		exit()
 	text.similar(args.search_string,num=50)
 
 
 if args.function == "concordance":
-	 verbose('searching for contexts')
-         if args.search_string == 0:
-		print "error: need term (--term or -t)"
-	        exit()
-	 punct_tokens = nltk.wordpunct_tokenize(itext)
-	 punct_text = nltk.Text(punct_tokens)
-	 punct_text.concordance(args.search_string)
+	verbose('searching for contexts')
+	if args.search_string == 0:
+		print("error: need term (--term or -t)")
+		exit()
+	punct_tokens = nltk.wordpunct_tokenize(itext)
+	punct_text = nltk.Text(punct_tokens)
+	punct_text.concordance(args.search_string)
 
 if args.function == 'search':
 	verbose('searching for string')
 	if args.search_string == 0:
-		print "error: need term (--term or -t)"
+		print("error: need term (--term or -t)")
 		exit()
 	text.findall(args.search_string)
 
@@ -163,18 +170,18 @@ if args.function == "topbigrams":
 	pp_text = preprocess(text)
 	bigrams_t = nltk.bigrams(pp_text)
 	freq = nltk.FreqDist(bigrams_t)
-        freq_common = freq.most_common(25)
+	freq_common = freq.most_common(25)
 	for i in range(0,25,1):
-                string = freq_common[i][0][0] + " " + freq_common[i][0][1]
-		print '{0:20}  {1:10d}'.format(string, freq_common[i][1])
+		string = freq_common[i][0][0] + " " + freq_common[i][0][1]
+		print('{0:20}  {1:10d}'.format(string, freq_common[i][1]))
 
 
 #
 # now preprocess collocations (convert to lower case, drop stopwords)
 #
 if args.function == "collocations":
-        pp_text = preprocess(text) 
-        text = nltk.Text(pp_text)
+	pp_text = preprocess(text) 
+	text = nltk.Text(pp_text)
 	text.collocations(num=30, window_size=3)
 
 # basic statistics
@@ -182,10 +189,10 @@ if args.function == "stats":
 	lines = sum(1 for line in open(args.filename))
 	pp_text = preprocess(text)
 	vocab = len(set(pp_text))
-	print "total number of lines: " + str(lines)
-	print "total number of words: " + str(len(tokens))
-	print "total number of unique non-stop words: " + str(vocab)
-        print "lexical variety: " + str(float(len(tokens)) / float(vocab))
+	print("total number of lines: " + str(lines))
+	print("total number of words: " + str(len(tokens)))
+	print("total number of unique non-stop words: " + str(vocab))
+	print("lexical variety: " + str(float(len(tokens)) / float(vocab)))
 
 if args.function == "topterms":
 	pp_text = preprocess(text)
@@ -193,7 +200,7 @@ if args.function == "topterms":
 	freq = nltk.FreqDist(pp_text)
 	freq_common = freq.most_common(25)
 	for i in range(0,25,1):
-		print '{0:20}  {1:10d}'.format(freq_common[i][0], freq_common[i][1])
+		print('{0:20}  {1:10d}'.format(freq_common[i][0], freq_common[i][1]))
 
 if args.function == "tf-idf":
 	verbose('importing numpy and sklearn')
