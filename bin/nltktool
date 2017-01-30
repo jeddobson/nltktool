@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/bin/env python
 #
 # a generic NLTK and sklearn tool (swiss army knife)
 # used for teaching the basics of text mining
