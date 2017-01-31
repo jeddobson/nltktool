@@ -28,6 +28,8 @@ import os
 import re
 import operator
 
+from time import time
+
 verbose_switch = False
 
 wrapped_functions = ['tf-idf','tf-idf-ngram','search','concordance','search','topbigrams','people','locations','collocations','topterms','stats','similarity']
@@ -89,10 +91,15 @@ from nltk import pos_tag, ne_chunk
 from nltk.tokenize import wordpunct_tokenize
 
 print("opening file: " + str(args.filename))
-fstream = open(args.filename,'rU')
+
 verbose('running through tokenizer')
+
+# read and decode UTF-8
+from io import open
+fstream = open(args.filename,'rU',encoding='utf-8')
 itext = fstream.read()
-#itext = fstream.read().decode('utf-8')
+
+
 tokens = nltk.word_tokenize(itext)
 text = nltk.Text(tokens)
 
@@ -203,6 +210,7 @@ if args.function == "topterms":
 		print('{0:20}  {1:10d}'.format(freq_common[i][0], freq_common[i][1]))
 
 if args.function == "tf-idf":
+	t0 = time()
 	verbose('importing numpy and sklearn')
 	from sklearn.feature_extraction import text
 	from sklearn import decomposition
@@ -224,8 +232,11 @@ if args.function == "tf-idf":
 		print("Topic #%d:" % topic_idx)
 		print(" ".join([feature_names[i]
 			for i in topic.argsort()[:-20 - 1:-1]]))
+	if verbose_switch:
+		print("completed in %fs" % (time() - t0))
 
 if args.function == "tf-idf-ngram":
+	t0 = time()
 	verbose('importing numpy and sklearn')
 	from sklearn.feature_extraction import text
 	from sklearn import decomposition
@@ -248,3 +259,5 @@ if args.function == "tf-idf-ngram":
 		print(",".join([feature_names[i]
 			for i in topic.argsort()[:-20 - 1:-1]]))
 
+	if verbose_switch:
+		print("completed in %fs" % (time() - t0))
