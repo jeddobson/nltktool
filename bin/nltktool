@@ -193,13 +193,19 @@ if args.function == "collocations":
 
 # basic statistics
 if args.function == "stats":
+	t0 = time()
+
 	lines = sum(1 for line in open(args.filename))
 	pp_text = preprocess(text)
 	vocab = len(set(pp_text))
+
 	print("total number of lines: " + str(lines))
 	print("total number of words: " + str(len(tokens)))
 	print("total number of unique non-stop words: " + str(vocab))
 	print("lexical variety: " + str(float(len(tokens)) / float(vocab)))
+
+	if verbose_switch:
+		print("completed in %fs" % (time() - t0))
 
 if args.function == "topterms":
 	pp_text = preprocess(text)
